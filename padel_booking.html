@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ملعب البادل - نظام الحجوزات</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f1e;
+    --surface: #111827;
+    --surface2: #1a2438;
+    --border: #1e3a5f;
+    --accent: #00d4ff;
+    --accent2: #0099cc;
+    --green: #00e676;
+    --red: #ff5252;
+    --yellow: #ffd740;
+    --text: #e8f4ff;
+    --text2: #7a9bbf;
+    --card: #131f35;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Tajawal', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background effect */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 70% 20%, rgba(0,212,255,0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 20% 80%, rgba(0,153,204,0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 32px;
+    padding: 28px 20px;
+    background: var(--surface);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent), var(--accent2));
+  }
+
+  .header h1 {
+    font-size: clamp(22px, 5vw, 32px);
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+
+  .header p {
+    color: var(--text2);
+    font-size: 14px;
+  }
+
+  .sync-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    background: rgba(0,230,118,0.1);
+    color: var(--green);
+    border: 1px solid rgba(0,230,118,0.2);
+  }
+
+  .sync-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    background: var(--surface);
+    padding: 6px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+  }
+
+  .tab {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    transition: all 0.2s;
+    background: transparent;
+    color: var(--text2);
+  }
+
+  .tab.active {
+    background: var(--accent);
+    color: #000;
+  }
+
+  /* Form Card */
+  .card {
+    background: var(--surface);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text2);
+  }
+
+  input, select {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: 'Tajawal', sans-serif;
+    font-size: 15px;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  select option { background: var(--surface2); }
+
+  /* Price display */
+  .price-display {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .price-value {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--green);
+  }
+
+  .price-edit {
+    background: none;
+    border: none;
+    color: var(--accent);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    font-family: 'Tajawal', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .price-edit:hover { background: var(--accent); color: #000; }
+
+  /* Payment */
+  .payment-options {
+    display: flex;
+    gap: 10px;
+  }
+
+  .payment-btn {
+    flex: 1;
+    padding: 11px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2);
+    font-family: 'Tajawal', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .payment-btn.selected-cash { border-color: var(--green); color: var(--green); background: rgba(0,230,118,0.08); }
+  .payment-btn.selected-card { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.08); }
+
+  /* Conflict warning */
+  .conflict-alert {
+    background: rgba(255,82,82,0.1);
+    border: 1.5px solid var(--red);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--red);
+    font-size: 14px;
+    font-weight: 700;
+    display: none;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .conflict-alert.show { display: flex; }
+
+  /* Submit button */
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 4px;
+  }
+
+  .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,212,255,0.3); }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* Bookings List */
+  .day-filter {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .day-btn {
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    font-family: 'Tajawal', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .day-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.08); }
+
+  .booking-item {
+    background: var(--card);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 16px;
+    margin-bottom: 12px;
+    position: relative;
+    transition: all 0.2s;
+  }
+
+  .booking-item:hover { border-color: var(--accent2); }
+
+  .booking-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .booking-time {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .booking-duration {
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+
+  .booking-price {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--green);
+  }
+
+  .booking-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .info-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--surface2);
+    color: var(--text2);
+  }
+
+  .badge-cash { background: rgba(0,230,118,0.1); color: var(--green); }
+  .badge-card { background: rgba(0,212,255,0.1); color: var(--accent); }
+
+  .booking-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .action-btn {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-copy { background: rgba(0,212,255,0.15); color: var(--accent); }
+  .btn-edit { background: rgba(255,215,64,0.15); color: var(--yellow); }
+  .btn-delete { background: rgba(255,82,82,0.15); color: var(--red); }
+
+  .action-btn:hover { filter: brightness(1.2); }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 40px;
+    color: var(--text2);
+    font-size: 15px;
+  }
+
+  /* Prices panel */
+  .price-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .price-row:last-child { border-bottom: none; }
+
+  .price-label { font-size: 15px; font-weight: 700; }
+  .price-amount { font-size: 16px; font-weight: 900; color: var(--green); }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    padding: 24px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .btn-cancel {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    font-family: 'Tajawal', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .btn-confirm {
+    flex: 2;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    color: #000;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 15px;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    z-index: 2000;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: var(--green); color: var(--green); }
+  .toast.error { border-color: var(--red); color: var(--red); }
+  .toast.info { border-color: var(--accent); color: var(--accent); }
+
+  /* Loading */
+  .loading { text-align: center; padding: 30px; color: var(--text2); }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 10px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Date display in booking */
+  .booking-date {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 6px;
+  }
+
+  /* Settings icon */
+  .settings-link {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text2);
+    cursor: pointer;
+    font-size: 20px;
+    text-decoration: none;
+    padding: 6px;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+  .settings-link:hover { color: var(--accent); background: rgba(0,212,255,0.08); }
+
+  /* Price settings panel */
+  .price-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .price-input-row label { flex: 1; font-size: 14px; font-weight: 700; color: var(--text); }
+  .price-input-row input { width: 100px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header" style="position:relative;">
+    <a class="settings-link" onclick="openPriceSettings()" title="إعدادات الأسعار">⚙️</a>
+    <h1>🏸 ملعب البادل</h1>
+    <p>نظام إدارة الحجوزات</p>
+    <div class="sync-status">
+      <div class="sync-dot"></div>
+      <span id="syncLabel">جاري الاتصال...</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('new')">➕ حجز جديد</button>
+    <button class="tab" onclick="switchTab('list')">📋 الحجوزات</button>
+  </div>
+
+  <!-- NEW BOOKING TAB -->
+  <div id="tab-new">
+    <div class="card">
+      <div class="card-title">📅 بيانات الحجز</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>📆 التاريخ</label>
+          <input type="date" id="bookDate" onchange="updateDayLabel()">
+          <div id="dayLabel" style="font-size:13px; font-weight:700; color:var(--accent); margin-top:2px;"></div>
+        </div>
+        <div class="form-group">
+          <label>⏰ وقت البداية</label>
+          <input type="time" id="bookStart" step="1800">
+        </div>
+        <div class="form-group">
+          <label>⏱️ المدة</label>
+          <select id="bookDuration" onchange="onDurationChange()">
+            <option value="">اختر المدة</option>
+            <option value="60">ساعة (60 دقيقة)</option>
+            <option value="90">ساعة ونصف (90 دقيقة)</option>
+            <option value="120">ساعتين (120 دقيقة)</option>
+            <option value="150">ساعتين ونصف (150 دقيقة)</option>
+            <option value="180">ثلاث ساعات (180 دقيقة)</option>
+            <option value="240">أربع ساعات (240 دقيقة)</option>
+            <option value="300">خمس ساعات (300 دقيقة)</option>
+            <option value="custom">مخصص ✏️</option>
+          </select>
+        </div>
+        <div class="form-group" id="customDurationGroup" style="display:none;">
+          <label>⏱️ عدد الدقائق</label>
+          <input type="number" id="customDuration" placeholder="مثال: 360" min="30" step="30" oninput="onCustomDurationChange()">
+        </div>
+        <div class="form-group">
+          <label>💰 السعر (ريال)</label>
+          <div class="price-display">
+            <span class="price-value" id="priceDisplay">--</span>
+            <button class="price-edit" onclick="togglePriceEdit()">تعديل</button>
+          </div>
+          <input type="number" id="priceInput" placeholder="أدخل السعر" style="display:none; margin-top:6px;" oninput="updatePriceDisplay()">
+        </div>
+        <div class="form-group">
+          <label>📱 رقم الجوال</label>
+          <input type="tel" id="bookPhone" placeholder="05xxxxxxxx">
+        </div>
+        <div class="form-group full">
+          <label>💳 طريقة الدفع</label>
+          <div class="payment-options">
+            <button class="payment-btn" id="btnCash" onclick="selectPayment('cash')">🏦 تحويل</button>
+            <button class="payment-btn" id="btnCard" onclick="selectPayment('card')">💳 شبكة</button>
+          </div>
+        </div>
+        <div class="form-group full">
+          <div class="conflict-alert" id="conflictAlert">
+            ⚠️ <span id="conflictMsg">يوجد تداخل مع حجز آخر!</span>
+          </div>
+        </div>
+      </div>
+      <button class="submit-btn" onclick="submitBooking()" id="submitBtn">✅ تأكيد الحجز</button>
+    </div>
+  </div>
+
+  <!-- BOOKINGS LIST TAB -->
+  <div id="tab-list" style="display:none;">
+    <div class="card">
+      <div class="card-title">📋 الحجوزات المسجلة</div>
+
+      <div id="bookingsList"><div class="loading"><div class="spinner"></div>جاري التحميل...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title">✏️ تعديل الحجز</div>
+    <input type="hidden" id="editId">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>📆 التاريخ</label>
+        <input type="date" id="editDate">
+      </div>
+      <div class="form-group">
+        <label>⏰ وقت البداية</label>
+        <input type="time" id="editStart">
+      </div>
+      <div class="form-group">
+        <label>⏱️ المدة</label>
+        <select id="editDuration" onchange="onEditDurationChange()">
+          <option value="60">ساعة</option>
+          <option value="90">ساعة ونصف</option>
+          <option value="120">ساعتين</option>
+          <option value="150">ساعتين ونصف</option>
+          <option value="180">ثلاث ساعات</option>
+          <option value="240">أربع ساعات</option>
+          <option value="300">خمس ساعات</option>
+          <option value="custom">مخصص</option>
+        </select>
+      </div>
+      <div class="form-group" id="editCustomDurationGroup" style="display:none;">
+        <label>⏱️ عدد الدقائق</label>
+        <input type="number" id="editCustomDuration" placeholder="مثال: 360" min="30" step="30">
+      </div>
+      <div class="form-group">
+        <label>💰 السعر (ريال)</label>
+        <input type="number" id="editPrice" placeholder="السعر">
+      </div>
+      <div class="form-group">
+        <label>📱 رقم الجوال</label>
+        <input type="tel" id="editPhone">
+      </div>
+      <div class="form-group full">
+        <label>💳 طريقة الدفع</label>
+        <div class="payment-options">
+          <button class="payment-btn" id="editBtnCash" onclick="selectEditPayment('cash')">🏦 تحويل</button>
+          <button class="payment-btn" id="editBtnCard" onclick="selectEditPayment('card')">💳 شبكة</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">إلغاء</button>
+      <button class="btn-confirm" onclick="saveEdit()">💾 حفظ التعديل</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRICE SETTINGS MODAL -->
+<div class="modal-overlay" id="priceModal">
+  <div class="modal">
+    <div class="modal-title">⚙️ إعدادات الأسعار</div>
+    <div id="priceSettingsContent"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closePriceModal()">إغلاق</button>
+      <button class="btn-confirm" onclick="savePrices()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+<script>
+function updateDayLabel() {
+  const val = document.getElementById('bookDate').value;
+  const label = document.getElementById('dayLabel');
+  if (!val) { label.textContent = ''; return; }
+  const d = new Date(val + 'T12:00:00');
+  label.textContent = d.toLocaleDateString('ar-SA', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+}
+</script>
+
+<!-- Firebase -->
+<script>
+// Firebase loaded via compat CDN below
+
+// =========== FIREBASE CONFIG ===========
+// ⚠️ هذا الموقع يستخدم Firebase مجانياً لمزامنة الحجوزات
+// يمكنك إنشاء مشروع مجاني على https://console.firebase.google.com
+// واستبدال هذه البيانات ببياناتك
+const firebaseConfig = {
+  apiKey: "AIzaSyDhz8-n4hcyukz4aofSVr8KyTUM05sYCaQ",
+  authDomain: "padel-booking-b7b39.firebaseapp.com",
+  databaseURL: "https://padel-booking-b7b39-default-rtdb.firebaseio.com",
+  projectId: "padel-booking-b7b39",
+  storageBucket: "padel-booking-b7b39.firebasestorage.app",
+  messagingSenderId: "991023816898",
+  appId: "1:991023816898:web:113a4f441cc9e427c91b5b",
+  measurementId: "G-NK38FEEW3K"
+};
+
+// =========== LOCAL STORAGE FALLBACK ===========
+// سيعمل الموقع بشكل محلي إذا لم يتم إعداد Firebase
+let useLocal = false;
+let bookings = {};
+let db, bookingsRef;
+
+try {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.database();
+  bookingsRef = db.ref('padel/bookings');
+  
+  bookingsRef.on('value', (snapshot) => {
+    bookings = snapshot.val() || {};
+    document.getElementById('syncLabel').textContent = 'متصل ومزامن ✓';
+    renderBookings();
+  }, (error) => {
+    console.log('Firebase error, using local:', error);
+    switchToLocal();
+  });
+} catch(e) {
+  switchToLocal();
+}
+
+function switchToLocal() {
+  useLocal = true;
+  try { bookings = JSON.parse(localStorage.getItem('padelBookings') || '{}'); } catch(e) { bookings = {}; }
+  document.getElementById('syncLabel').textContent = 'وضع محلي (بدون مزامنة)';
+  document.querySelector('.sync-status').style.background = 'rgba(255,215,64,0.1)';
+  document.querySelector('.sync-status').style.color = '#ffd740';
+  document.querySelector('.sync-status').style.borderColor = 'rgba(255,215,64,0.2)';
+  document.querySelector('.sync-dot').style.background = '#ffd740';
+  renderBookings();
+}
+
+// =========== PRICES ===========
+const defaultPrices = { 60:100, 90:150, 120:180, 150:225, 180:250, 240:320, 300:390 };
+let prices = {};
+try { prices = JSON.parse(localStorage.getItem('padelPrices') || 'null') || {...defaultPrices}; } 
+catch(e) { prices = {...defaultPrices}; }
+
+function getPriceForDuration(mins) {
+  return prices[mins] || null;
+}
+
+// =========== STATE ===========
+let selectedPayment = '';
+let editSelectedPayment = '';
+
+// Set today's date
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('bookDate').value = today;
+updateDayLabel();
+
+
+
+// =========== DURATION HANDLERS ===========
+function onDurationChange() {
+  const val = document.getElementById('bookDuration').value;
+  const customGroup = document.getElementById('customDurationGroup');
+  if (val === 'custom') {
+    customGroup.style.display = 'flex';
+    document.getElementById('priceInput').style.display = 'block';
+    document.getElementById('priceInput').value = '';
+    document.getElementById('priceDisplay').textContent = '--';
+  } else {
+    customGroup.style.display = 'none';
+    if (val) {
+      const p = getPriceForDuration(parseInt(val));
+      document.getElementById('priceDisplay').textContent = p ? p + ' ريال' : '--';
+      document.getElementById('priceInput').value = p || '';
+      document.getElementById('priceInput').style.display = 'none';
+    } else {
+      document.getElementById('priceDisplay').textContent = '--';
+      document.getElementById('priceInput').value = '';
+    }
+  }
+  checkConflict();
+}
+
+function onCustomDurationChange() {
+  const mins = parseInt(document.getElementById('customDuration').value);
+  const p = getPriceForDuration(mins);
+  if (p) {
+    document.getElementById('priceDisplay').textContent = p + ' ريال';
+    document.getElementById('priceInput').value = p;
+  }
+  checkConflict();
+}
+
+function togglePriceEdit() {
+  const inp = document.getElementById('priceInput');
+  if (inp.style.display === 'none') {
+    inp.style.display = 'block';
+    inp.focus();
+  } else {
+    inp.style.display = 'none';
+  }
+}
+
+function updatePriceDisplay() {
+  const v = document.getElementById('priceInput').value;
+  document.getElementById('priceDisplay').textContent = v ? v + ' ريال' : '--';
+}
+
+// =========== PAYMENT ===========
+function selectPayment(type) {
+  selectedPayment = type;
+  document.getElementById('btnCash').className = 'payment-btn' + (type==='cash' ? ' selected-cash' : '');
+  document.getElementById('btnCard').className = 'payment-btn' + (type==='card' ? ' selected-card' : '');
+}
+
+function selectEditPayment(type) {
+  editSelectedPayment = type;
+  document.getElementById('editBtnCash').className = 'payment-btn' + (type==='cash' ? ' selected-cash' : '');
+  document.getElementById('editBtnCard').className = 'payment-btn' + (type==='card' ? ' selected-card' : '');
+}
+
+// =========== CONFLICT CHECK ===========
+function getMinutes(timeStr) {
+  const [h,m] = timeStr.split(':').map(Number);
+  return h*60 + m;
+}
+
+function getDurationMins() {
+  const dur = document.getElementById('bookDuration').value;
+  if (dur === 'custom') return parseInt(document.getElementById('customDuration').value) || 0;
+  return parseInt(dur) || 0;
+}
+
+function checkConflict(excludeId=null) {
+  const date = document.getElementById('bookDate').value;
+  const start = document.getElementById('bookStart').value;
+  const dur = getDurationMins();
+  const alert = document.getElementById('conflictAlert');
+
+  if (!date || !start || !dur) { alert.classList.remove('show'); return false; }
+
+  const startM = getMinutes(start);
+  const endM = startM + dur;
+
+  for (const [id, b] of Object.entries(bookings)) {
+    if (id === excludeId) continue;
+    if (b.date !== date) continue;
+    const bStart = getMinutes(b.startTime);
+    const bEnd = bStart + b.duration;
+    if (startM < bEnd && endM > bStart) {
+      const endH = Math.floor(bEnd/60).toString().padStart(2,'0');
+      const endMn = (bEnd%60).toString().padStart(2,'0');
+      document.getElementById('conflictMsg').textContent = 
+        `تداخل مع حجز من ${formatTime12(b.startTime)} حتى ${formatTime12(endH+':'+endMn)}`;
+      alert.classList.add('show');
+      return true;
+    }
+  }
+  alert.classList.remove('show');
+  return false;
+}
+
+document.getElementById('bookDate').addEventListener('change', checkConflict);
+document.getElementById('bookStart').addEventListener('change', checkConflict);
+
+// =========== SUBMIT BOOKING ===========
+async function submitBooking() {
+  const date = document.getElementById('bookDate').value;
+  const start = document.getElementById('bookStart').value;
+  const dur = getDurationMins();
+  const price = document.getElementById('priceInput').value || 
+                document.getElementById('priceDisplay').textContent.replace(' ريال','');
+  const phone = document.getElementById('bookPhone').value;
+  const payment = selectedPayment;
+
+  if (!date || !start || !dur || !price || !phone || !payment) {
+    showToast('❌ يرجى تعبئة جميع الحقول', 'error'); return;
+  }
+
+  if (checkConflict()) {
+    showToast('❌ يوجد تداخل مع حجز آخر', 'error'); return;
+  }
+
+  const startM = getMinutes(start);
+  const endM = startM + dur;
+  const endH = Math.floor(endM/60).toString().padStart(2,'0');
+  const endMn = (endM%60).toString().padStart(2,'0');
+
+  const booking = {
+    date, startTime: start, endTime: `${endH}:${endMn}`,
+    duration: dur, price: parseInt(price),
+    phone, payment,
+    createdAt: new Date().toISOString()
+  };
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ جاري الحفظ...';
+
+  try {
+    let newId;
+    if (useLocal) {
+      newId = 'local_' + Date.now();
+      bookings[newId] = booking;
+      localStorage.setItem('padelBookings', JSON.stringify(bookings));
+    } else {
+      const newRef = bookingsRef.push();
+      await newRef.set(booking);
+      newId = newRef.key;
+    }
+
+    showToast('✅ تم تأكيد الحجز!', 'success');
+    
+    // Generate confirmation message
+    const durText = getDurText(dur);
+    const payText = payment === 'cash' ? 'تحويل 🏦' : 'شبكة 💳';
+    const msg = `✅ *تأكيد حجز ملعب البادل*\n\n📅 التاريخ: ${formatDate(date)}\n⏰ من: ${formatTime12(start)} → إلى: ${calcEndTime12(start, dur)}\n⏱️ المدة: ${durText}\n💰 السعر: ${price} ريال\n💳 الدفع: ${payText}\n📱 الجوال: ${phone}`;
+
+    setTimeout(() => { copyText(msg); }, 500);
+
+    // Reset form
+    document.getElementById('bookDuration').value = '';
+    document.getElementById('bookStart').value = '';
+    document.getElementById('bookPhone').value = '';
+    document.getElementById('priceDisplay').textContent = '--';
+    document.getElementById('priceInput').value = '';
+    document.getElementById('priceInput').style.display = 'none';
+    document.getElementById('customDurationGroup').style.display = 'none';
+    document.getElementById('conflictAlert').classList.remove('show');
+    selectPayment('');
+
+  } catch(e) {
+    showToast('❌ حدث خطأ، حاول مجدداً', 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '✅ تأكيد الحجز';
+}
+
+// =========== RENDER BOOKINGS ===========
+function renderBookings() {
+  const container = document.getElementById('bookingsList');
+  
+  let list = Object.entries(bookings);
+  list.sort((a,b) => (a[1].date+a[1].startTime).localeCompare(b[1].date+b[1].startTime));
+
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty">📭 لا توجد حجوزات</div>';
+    return;
+  }
+
+  container.innerHTML = list.map(([id, b]) => {
+    const startM = getMinutes(b.startTime);
+    const endM = startM + b.duration;
+    const endH = Math.floor(endM/60).toString().padStart(2,'0');
+    const endMn = (endM%60).toString().padStart(2,'0');
+    const durText = getDurText(b.duration);
+    const payBadge = b.payment === 'cash' 
+      ? '<span class="info-badge badge-cash">🏦 تحويل</span>'
+      : '<span class="info-badge badge-card">💳 شبكة</span>';
+
+    return `<div class="booking-item">
+      <div class="booking-date">📅 ${formatDate(b.date)}</div>
+      <div class="booking-top">
+        <div>
+          <div class="booking-time">${formatTime12(b.startTime)} ← ${calcEndTime12(b.startTime, b.duration)}</div>
+          <div class="booking-duration">⏱️ ${durText}</div>
+        </div>
+        <div class="booking-price">${b.price} ريال</div>
+      </div>
+      <div class="booking-info">
+        <span class="info-badge">📱 ${b.phone}</span>
+        ${payBadge}
+      </div>
+      <div class="booking-actions">
+        <button class="action-btn btn-copy" onclick="copyConfirm('${id}')">📋 نسخ</button>
+        <button class="action-btn btn-edit" onclick="openEdit('${id}')">✏️ تعديل</button>
+        <button class="action-btn btn-delete" onclick="deleteBooking('${id}')">🗑️ حذف</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// =========== COPY CONFIRM ===========
+function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => showToast('📋 تم نسخ رسالة التأكيد!', 'info'));
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('📋 تم نسخ رسالة التأكيد!', 'info');
+    }
+  } catch(e) {
+    showToast('❌ تعذر النسخ', 'error');
+  }
+}
+
+function copyConfirm(id) {
+  const b = bookings[id];
+  if (!b) return;
+  const durText = getDurText(b.duration);
+  const payText = b.payment === 'cash' ? 'تحويل 🏦' : 'شبكة 💳';
+  const msg = `✅ *تأكيد حجز ملعب البادل*\n\n📅 التاريخ: ${formatDate(b.date)}\n⏰ من: ${formatTime12(b.startTime)} → إلى: ${calcEndTime12(b.startTime, b.duration)}\n⏱️ المدة: ${durText}\n💰 السعر: ${b.price} ريال\n💳 الدفع: ${payText}\n📱 الجوال: ${b.phone}`;
+  copyText(msg);
+}
+
+// =========== DELETE ===========
+function deleteBooking(id) {
+  // Show inline confirm UI
+  const container = document.getElementById('bookingsList');
+  const items = container.querySelectorAll('.booking-item');
+  items.forEach(item => {
+    const delBtn = item.querySelector('.btn-delete');
+    if (delBtn && delBtn.getAttribute('onclick').includes(`'${id}'`)) {
+      if (item.querySelector('.confirm-delete-row')) return;
+      const row = document.createElement('div');
+      row.className = 'confirm-delete-row';
+      row.style.cssText = 'display:flex;gap:8px;margin-top:10px;';
+      row.innerHTML = `
+        <span style="flex:1;font-size:13px;color:var(--red);font-weight:700;align-self:center;">تأكيد الحذف؟</span>
+        <button onclick="confirmDelete('${id}')" style="padding:7px 16px;border-radius:8px;border:none;background:var(--red);color:#fff;font-family:Tajawal,sans-serif;font-size:13px;font-weight:700;cursor:pointer;">نعم، احذف</button>
+        <button onclick="cancelDelete(this)" style="padding:7px 16px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--text2);font-family:Tajawal,sans-serif;font-size:13px;font-weight:700;cursor:pointer;">إلغاء</button>
+      `;
+      item.appendChild(row);
+    }
+  });
+}
+
+function cancelDelete(btn) {
+  btn.closest('.confirm-delete-row').remove();
+}
+
+async function confirmDelete(id) {
+  try {
+    if (useLocal) {
+      delete bookings[id];
+      localStorage.setItem('padelBookings', JSON.stringify(bookings));
+      renderBookings();
+    } else {
+      await db.ref('padel/bookings/' + id).remove();
+    }
+    showToast('🗑️ تم حذف الحجز', 'info');
+  } catch(e) {
+    showToast('❌ حدث خطأ', 'error');
+  }
+}
+
+// =========== EDIT ===========
+function openEdit(id) {
+  const b = bookings[id];
+  if (!b) return;
+  document.getElementById('editId').value = id;
+  document.getElementById('editDate').value = b.date;
+  document.getElementById('editStart').value = b.startTime;
+  document.getElementById('editPrice').value = b.price;
+  document.getElementById('editPhone').value = b.phone;
+  
+  const durSel = document.getElementById('editDuration');
+  const stdDurs = ['60','90','120','150','180','240','300'];
+  if (stdDurs.includes(String(b.duration))) {
+    durSel.value = b.duration;
+    document.getElementById('editCustomDurationGroup').style.display = 'none';
+  } else {
+    durSel.value = 'custom';
+    document.getElementById('editCustomDurationGroup').style.display = 'flex';
+    document.getElementById('editCustomDuration').value = b.duration;
+  }
+  
+  selectEditPayment(b.payment);
+  document.getElementById('editModal').classList.add('show');
+}
+
+function onEditDurationChange() {
+  const val = document.getElementById('editDuration').value;
+  document.getElementById('editCustomDurationGroup').style.display = val === 'custom' ? 'flex' : 'none';
+  if (val !== 'custom') {
+    const p = getPriceForDuration(parseInt(val));
+    if (p) document.getElementById('editPrice').value = p;
+  }
+}
+
+async function saveEdit() {
+  const id = document.getElementById('editId').value;
+  const dur = document.getElementById('editDuration').value === 'custom'
+    ? parseInt(document.getElementById('editCustomDuration').value)
+    : parseInt(document.getElementById('editDuration').value);
+
+  const startM = getMinutes(document.getElementById('editStart').value);
+  const endM = startM + dur;
+  const endH = Math.floor(endM/60).toString().padStart(2,'0');
+  const endMn = (endM%60).toString().padStart(2,'0');
+
+  const updated = {
+    date: document.getElementById('editDate').value,
+    startTime: document.getElementById('editStart').value,
+    endTime: `${endH}:${endMn}`,
+    duration: dur,
+    price: parseInt(document.getElementById('editPrice').value),
+    phone: document.getElementById('editPhone').value,
+    payment: editSelectedPayment,
+    createdAt: bookings[id]?.createdAt || new Date().toISOString()
+  };
+
+  try {
+    if (useLocal) {
+      bookings[id] = updated;
+      localStorage.setItem('padelBookings', JSON.stringify(bookings));
+      renderBookings();
+    } else {
+      await db.ref('padel/bookings/' + id).update(updated);
+    }
+    closeModal();
+    showToast('✅ تم حفظ التعديل', 'success');
+  } catch(e) {
+    showToast('❌ حدث خطأ', 'error');
+  }
+}
+
+function closeModal() {
+  document.getElementById('editModal').classList.remove('show');
+}
+
+// =========== PRICE SETTINGS ===========
+function openPriceSettings() {
+  const labels = {60:'ساعة',90:'ساعة ونصف',120:'ساعتين',150:'ساعتين ونصف',180:'ثلاث ساعات',240:'أربع ساعات',300:'خمس ساعات'};
+  let html = '';
+  for (const [mins, label] of Object.entries(labels)) {
+    html += `<div class="price-input-row">
+      <label>${label}</label>
+      <input type="number" id="ps_${mins}" value="${prices[mins] || ''}" placeholder="السعر" style="width:110px;">
+      <span style="color:var(--text2); font-size:13px;">ريال</span>
+    </div>`;
+  }
+  document.getElementById('priceSettingsContent').innerHTML = html;
+  document.getElementById('priceModal').classList.add('show');
+}
+
+function savePrices() {
+  const minsArr = [60,90,120,150,180,240,300];
+  for (const m of minsArr) {
+    const v = document.getElementById('ps_'+m)?.value;
+    if (v) prices[m] = parseInt(v);
+  }
+  localStorage.setItem('padelPrices', JSON.stringify(prices));
+  closePriceModal();
+  showToast('✅ تم حفظ الأسعار', 'success');
+}
+
+function closePriceModal() {
+  document.getElementById('priceModal').classList.remove('show');
+}
+
+// =========== TAB SWITCH ===========
+function switchTab(tab) {
+  document.getElementById('tab-new').style.display = tab === 'new' ? 'block' : 'none';
+  document.getElementById('tab-list').style.display = tab === 'list' ? 'block' : 'none';
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', (i===0 && tab==='new') || (i===1 && tab==='list'));
+  });
+  if (tab === 'list') renderBookings();
+}
+
+// =========== DATE HELPERS ===========
+function setToday() {
+  renderBookings();
+}
+
+function setTomorrow() {
+  const t = new Date(); t.setDate(t.getDate()+1);
+  renderBookings();
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('ar-SA', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+}
+
+function formatTime12(timeStr) {
+  const [h, m] = timeStr.split(':').map(Number);
+  const period = h >= 12 ? 'م' : 'ص';
+  const h12 = h % 12 || 12;
+  return h12 + ':' + m.toString().padStart(2,'0') + ' ' + period;
+}
+
+function calcEndTime12(startTime, durationMins) {
+  const [h, m] = startTime.split(':').map(Number);
+  const totalMins = h * 60 + m + durationMins;
+  const endH = Math.floor(totalMins / 60) % 24;
+  const endM = totalMins % 60;
+  const endStr = endH.toString().padStart(2,'0') + ':' + endM.toString().padStart(2,'0');
+  return formatTime12(endStr);
+}
+
+function getDurText(mins) {
+  const h = Math.floor(mins/60);
+  const m = mins%60;
+  if (m===0) return h + (h===1?' ساعة':' ساعات');
+  return h + ' ساعة و' + m + ' دقيقة';
+}
+
+// =========== TOAST ===========
+function showToast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+</script>
+</body>
+</html>
