@@ -1227,7 +1227,12 @@ function setTomorrow() {
 
 function formatDate(dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
-  return d.toLocaleDateString('ar-SA', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  const days = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+  const day = days[d.getDay()];
+  const dd = d.getDate().toString().padStart(2,'0');
+  const mm = (d.getMonth()+1).toString().padStart(2,'0');
+  const yyyy = d.getFullYear();
+  return `${day} ${dd}/${mm}/${yyyy}`;
 }
 
 function formatTime12(timeStr) {
