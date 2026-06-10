@@ -998,36 +998,47 @@ function renderBookings() {
     return;
   }
 
-  container.innerHTML = list.map(([id, b]) => {
-    const startM = getMinutes(b.startTime);
-    const endM = startM + b.duration;
-    const endH = Math.floor(endM/60).toString().padStart(2,'0');
-    const endMn = (endM%60).toString().padStart(2,'0');
-    const durText = getDurText(b.duration);
-    const payBadge = b.payment === 'cash' 
-      ? '<span class="info-badge badge-cash">🏦 تحويل</span>'
-      : '<span class="info-badge badge-card">💳 شبكة</span>';
+  // Group by date
+  const grouped = {};
+  list.forEach(([id, b]) => {
+    if (!grouped[b.date]) grouped[b.date] = [];
+    grouped[b.date].push([id, b]);
+  });
 
-    return `<div class="booking-item">
-      <div class="booking-date">📅 ${formatDate(b.date)}</div>
-      <div class="booking-top">
-        <div>
-          <div class="booking-time">${formatTime12(b.startTime)} ← ${calcEndTime12(b.startTime, b.duration)}</div>
-          <div class="booking-duration">⏱️ ${durText}</div>
-        </div>
-        <div class="booking-price">${b.price} ريال</div>
-      </div>
-      <div class="booking-info">
-        <span class="info-badge">📱 ${b.phone}</span>
-        ${payBadge}
-      </div>
-      <div class="booking-actions">
-        <button class="action-btn btn-copy" onclick="copyConfirm('${id}')">📋 نسخ</button>
-        <button class="action-btn btn-edit" onclick="openEdit('${id}')">✏️ تعديل</button>
-        <button class="action-btn btn-delete" onclick="deleteBooking('${id}')">🗑️ حذف</button>
-      </div>
+  let html = '';
+  for (const [date, items] of Object.entries(grouped)) {
+    html += `<div style="margin-bottom:8px; margin-top:16px; padding:10px 14px; background:var(--surface2); border-radius:10px; border-right:3px solid var(--accent);">
+      <span style="font-size:15px; font-weight:900; color:var(--accent);">📅 ${formatDate(date)}</span>
     </div>`;
-  }).join('');
+
+    items.forEach(([id, b]) => {
+      const durText = getDurText(b.duration);
+      const payBadge = b.payment === 'cash'
+        ? '<span class="info-badge badge-cash">🏦 تحويل</span>'
+        : '<span class="info-badge badge-card">💳 شبكة</span>';
+
+      html += `<div class="booking-item">
+        <div class="booking-top">
+          <div>
+            <div class="booking-time">${formatTime12(b.startTime)} ← ${calcEndTime12(b.startTime, b.duration)}</div>
+            <div class="booking-duration">⏱️ ${durText}</div>
+          </div>
+          <div class="booking-price">${b.price} ريال</div>
+        </div>
+        <div class="booking-info">
+          <span class="info-badge">📱 ${b.phone}</span>
+          ${payBadge}
+        </div>
+        <div class="booking-actions">
+          <button class="action-btn btn-copy" onclick="copyConfirm('${id}')">📋 نسخ</button>
+          <button class="action-btn btn-edit" onclick="openEdit('${id}')">✏️ تعديل</button>
+          <button class="action-btn btn-delete" onclick="deleteBooking('${id}')">🗑️ حذف</button>
+        </div>
+      </div>`;
+    });
+  }
+
+  container.innerHTML = html;
 }
 
 // =========== COPY CONFIRM ===========
